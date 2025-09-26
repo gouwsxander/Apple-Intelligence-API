@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "AppleIntelligenceApi",
     platforms: [
-       .macOS(.v13)
+       .macOS("26.0")
     ],
     dependencies: [
         // 💧 A server-side Swift web framework.

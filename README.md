@@ -1,6 +1,15 @@
-# AppleIntelligenceApi
+# A WebAPI for Apple Intelligence
 
-💧 A project built with the Vapor web framework.
+This API conforms to [OpenRouter standards](https://openrouter.ai/docs/quickstart) and so should quite straightforward to adopt. 
+
+I'm not super interested in hosting this, so you'll have to run it from an Apple Intelligence-enabled device.
+
+## Todo list
+[X] Standard responses (chat- and non-chat-based)
+[X] Streaming responses
+[ ] Authorization
+[ ] Structured outputs
+[ ] Tool calls
 
 ## Getting Started
 
@@ -18,10 +27,3 @@ To execute tests, use the following command:
 ```bash
 swift test
 ```
-
-### See more
-
-- [Vapor Website](https://vapor.codes)
-- [Vapor Documentation](https://docs.vapor.codes)
-- [Vapor GitHub](https://github.com/vapor)
-- [Vapor Community](https://github.com/vapor-community)

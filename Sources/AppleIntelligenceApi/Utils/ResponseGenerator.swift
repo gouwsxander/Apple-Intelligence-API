@@ -113,6 +113,7 @@ class StreamingResponseGenerator: ResponseGenerator, @unchecked Sendable {
                 try await writer.write(.buffer(ByteBuffer(string: "data: \(try jsonify(responseData))\n\n")))
             }
 
+            try await writer.write(.buffer(ByteBuffer(string: "data: [DONE]\n\n")))
             try await writer.write(.end)
         })
         

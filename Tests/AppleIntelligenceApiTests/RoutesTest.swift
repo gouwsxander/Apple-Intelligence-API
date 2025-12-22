@@ -29,6 +29,8 @@ struct RoutesTests {
                     #expect(!response.data.isEmpty)
                     #expect(response.data[0].id == "base")
                     #expect(response.data[0].object == "model")
+                    #expect(response.data[1].id == "permissive")
+                    #expect(response.data[1].object == "model")
                 })
         }
     }

@@ -17,7 +17,8 @@ func routes(_ app: Application) throws {
         // Models list endpoint
         api.get("models") { req async throws -> ModelsResponse in
             let models = [
-                Model(id: "base")
+                Model(id: "base"),
+                Model(id: "permissive"),
             ]
             return ModelsResponse(data: models)
         }

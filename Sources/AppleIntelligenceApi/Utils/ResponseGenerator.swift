@@ -68,13 +68,31 @@ class StandardResponseGenerator: ResponseGenerator {
     }
     
     private func makeChatChoice(from sessionResponse: SessionResponse) -> [String: Any?] {
+        var message: [String: Any?] = [
+            "role": "assistant",
+        ]
+
+        if let content = sessionResponse.content {
+            message["content"] = content
+        }
+
+        if let toolCalls = sessionResponse.toolCalls {
+            message["tool_calls"] = toolCalls.map { toolCall in
+                [
+                    "id": toolCall.id,
+                    "type": toolCall.type,
+                    "function": [
+                        "name": toolCall.function.name,
+                        "arguments": toolCall.function.arguments
+                    ]
+                ]
+            }
+        }
+
         return [
             "finish_reason": sessionResponse.finishReason?.rawValue,
             "native_finish_reason": sessionResponse.finishReason?.rawValue,
-            "message": [
-                "content": sessionResponse.content,
-                "role": "assistant",
-            ]
+            "message": message
         ]
     }
     
@@ -121,13 +139,32 @@ class StreamingResponseGenerator: ResponseGenerator, @unchecked Sendable {
     }
     
     private func makeChoice(from sessionResponse: SessionResponse) -> [String: Any?] {
+        var delta: [String: Any?] = [
+            "role": "assistant",
+        ]
+
+        if let content = sessionResponse.content {
+            delta["content"] = content
+        }
+
+        if let toolCalls = sessionResponse.toolCalls {
+            delta["tool_calls"] = toolCalls.map { toolCall in
+                [
+                    "index": 0,
+                    "id": toolCall.id,
+                    "type": toolCall.type,
+                    "function": [
+                        "name": toolCall.function.name,
+                        "arguments": toolCall.function.arguments
+                    ]
+                ]
+            }
+        }
+
         return [
             "finish_reason": sessionResponse.finishReason?.rawValue,
             "native_finish_reason": sessionResponse.finishReason?.rawValue,
-            "delta": [
-                "content": sessionResponse.content,
-                "role": "assistant",
-            ]
+            "delta": delta
         ]
     }
 }

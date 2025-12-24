@@ -9,10 +9,10 @@ A Swift-based web API that exposes Apple's on-device Foundation Models through a
 - [X] **Chat completions:** Multi-turn conversations with context
 - [X] **Streaming responses:** Real-time token streaming via Server-Sent Events
 - [X] **Multiple models:** Base and permissive content guardrails
+- [X] **Tool/function calling:** Full support for OpenAI-compatible tool/function calling
 - [ ] **Authentication**
 - [ ] **Structured outputs**
-- [ ] **Tool/function calling**
-- [ ] **Tests**
+- [X] **Tests**
 
 ## Running the server
 
@@ -115,6 +115,71 @@ for await (const chunk of response) {
 }
 ```
 
+### Tool/Function Calling
+
+The API supports OpenAI-compatible tool/function calling, allowing the model to invoke external tools and functions:
+
+```typescript
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  baseURL: 'http://localhost:8080/api/v1',
+  apiKey: 'not-needed'
+});
+
+const tools = [
+  {
+    type: 'function',
+    function: {
+      name: 'get_weather',
+      description: 'Get the current weather for a location',
+      parameters: {
+        type: 'object',
+        properties: {
+          location: {
+            type: 'string',
+            description: 'The city and state, e.g. San Francisco, CA'
+          }
+        },
+        required: ['location']
+      }
+    }
+  }
+];
+
+const response = await client.chat.completions.create({
+  model: 'base',
+  messages: [{ role: 'user', content: "What's the weather in San Francisco?" }],
+  tools: tools
+});
+
+// Check if the model wants to call a function
+if (response.choices[0].message.tool_calls) {
+  const toolCall = response.choices[0].message.tool_calls[0];
+  console.log('Function:', toolCall.function.name);
+  console.log('Arguments:', toolCall.function.arguments);
+
+  // Execute the function and send the result back
+  const functionResult = '{"temperature": 72, "condition": "sunny"}';
+
+  const followUp = await client.chat.completions.create({
+    model: 'base',
+    messages: [
+      { role: 'user', content: "What's the weather in San Francisco?" },
+      response.choices[0].message,
+      {
+        role: 'tool',
+        tool_call_id: toolCall.id,
+        content: functionResult
+      }
+    ],
+    tools: tools
+  });
+
+  console.log(followUp.choices[0].message.content);
+}
+```
+
 ### API reference
 
 For a complete breakdown of how to use the API, I suggest looking at the [OpenAI](https://platform.openai.com/docs/api-reference/chat) or [OpenRouter](https://openrouter.ai/docs/api/reference/overview) documentation.
@@ -128,19 +193,22 @@ Our API differs in a few key places:
 
 ### Running tests
 
-We currently do not have any tests! If you would like to implement some, please make a PR.
+Tests are included to verify the tool/function calling implementation and other features.
 
 ```bash
 swift test
 ```
 
+Note: Tests require an Apple Intelligence-enabled device to run fully, as they test integration with Apple's FoundationModels framework.
+
 ### Project structure
 
 - `./Sources/routes.swift`: API route definition
 - `./Sources/Utils/AbortErrors.swift`: Error type definitions
-- `./Sources/Utils/RequestContent.swift`: Parsing incoming requests
-- `./Sources/Utils/ResponseSession.swift`: Foundation models interface
-- `./Sources/Utils/ResponseGenerator.swift`: Generates responses
+- `./Sources/Utils/RequestContent.swift`: Parsing incoming requests (includes tool/function calling structures)
+- `./Sources/Utils/ResponseSession.swift`: Foundation models interface (handles tool definitions and responses)
+- `./Sources/Utils/ResponseGenerator.swift`: Generates responses (includes tool_calls serialization)
+- `./Tests/AppleIntelligenceApiTests/ToolCallingTests.swift`: Tests for tool/function calling
 
 ### Contributing
 

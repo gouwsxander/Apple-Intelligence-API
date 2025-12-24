@@ -10,7 +10,7 @@ A Swift-based web API that exposes Apple's on-device Foundation Models through a
 - [X] **Streaming responses:** Real-time token streaming via Server-Sent Events
 - [X] **Multiple models:** Base and permissive content guardrails
 - [ ] **Authentication**
-- [ ] **Structured outputs**
+- [X] **Structured outputs**
 - [ ] **Tool/function calling**
 - [ ] **Tests**
 

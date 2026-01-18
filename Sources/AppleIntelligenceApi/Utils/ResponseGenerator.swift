@@ -61,38 +61,18 @@ class StandardResponseGenerator: ResponseGenerator {
     }
     
     private func makeNonChatChoice(from sessionResponse: SessionResponse) -> [String: Any?] {
-        var content: Any? = sessionResponse.content
-        
-        // If it's a JSON string (from structured output), try to parse it to avoid double stringification
-        if let contentString = sessionResponse.content, contentString.trimmingCharacters(in: .whitespacesAndNewlines).hasPrefix("{") {
-            if let data = contentString.data(using: .utf8),
-               let jsonObject = try? JSONSerialization.jsonObject(with: data) {
-                content = jsonObject
-            }
-        }
-
         return [
             "finish_reason": sessionResponse.finishReason?.rawValue,
-            "text": content
+            "text": sessionResponse.content
         ]
     }
     
     private func makeChatChoice(from sessionResponse: SessionResponse) -> [String: Any?] {
-        var content: Any? = sessionResponse.content
-        
-        // If it's a JSON string (from structured output), try to parse it to avoid double stringification
-        if let contentString = sessionResponse.content, contentString.trimmingCharacters(in: .whitespacesAndNewlines).hasPrefix("{") {
-            if let data = contentString.data(using: .utf8),
-               let jsonObject = try? JSONSerialization.jsonObject(with: data) {
-                content = jsonObject
-            }
-        }
-
         return [
             "finish_reason": sessionResponse.finishReason?.rawValue,
             "native_finish_reason": sessionResponse.finishReason?.rawValue,
             "message": [
-                "content": content,
+                "content": sessionResponse.content,
                 "role": "assistant",
             ]
         ]
@@ -141,21 +121,11 @@ class StreamingResponseGenerator: ResponseGenerator, @unchecked Sendable {
     }
     
     private func makeChoice(from sessionResponse: SessionResponse) -> [String: Any?] {
-        var content: Any? = sessionResponse.content
-        
-        // If it's a JSON string (from structured output), try to parse it to avoid double stringification
-        if let contentString = sessionResponse.content, contentString.trimmingCharacters(in: .whitespacesAndNewlines).hasPrefix("{") {
-            if let data = contentString.data(using: .utf8),
-               let jsonObject = try? JSONSerialization.jsonObject(with: data) {
-                content = jsonObject
-            }
-        }
-
         return [
             "finish_reason": sessionResponse.finishReason?.rawValue,
             "native_finish_reason": sessionResponse.finishReason?.rawValue,
             "delta": [
-                "content": content,
+                "content": sessionResponse.content,
                 "role": "assistant",
             ]
         ]

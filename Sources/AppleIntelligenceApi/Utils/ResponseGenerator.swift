@@ -131,7 +131,3 @@ class StreamingResponseGenerator: ResponseGenerator, @unchecked Sendable {
         ]
     }
 }
-
-func createHandler(from context: ResponseSession) -> any ResponseGenerator {
-    return context.toStream ? StreamingResponseGenerator(from: context) : StandardResponseGenerator(from: context)
-}

@@ -10,7 +10,9 @@ func routes(_ app: Application) throws {
 
             let requestContent = try req.content.decode(RequestContent.self)
             let responseSession = try ResponseSession(from: requestContent)
-            let responseGenerator = createResponseGenerator(from: responseSession)
+            let responseGenerator = createResponseGenerator(
+                from: responseSession
+            )
             return try await responseGenerator.generateResponse()
         }
 

@@ -1,11 +1,9 @@
 import Vapor
 
-
 struct Message: Content {
     var role: String
     var content: String
 }
-
 
 indirect enum JSONSchemaProperty: Content {
     case string(description: String?, enumValues: [String]?)
@@ -13,40 +11,100 @@ indirect enum JSONSchemaProperty: Content {
     case number(description: String?, minimum: Double?, maximum: Double?)
     case boolean(description: String?)
     case array(description: String?, items: JSONSchemaProperty)
-    case object(description: String?, properties: [String: JSONSchemaProperty], required: [String]?)
+    case object(
+        description: String?,
+        properties: [String: JSONSchemaProperty],
+        required: [String]?
+    )
+
+    var description: String? {
+        switch self {
+        case .string(let description, _),
+            .integer(let description, _, _),
+            .number(let description, _, _),
+            .boolean(let description),
+            .array(let description, _),
+            .object(let description, _, _):
+            return description
+        }
+    }
 
     private enum CodingKeys: String, CodingKey {
-        case type, description, `enum`, minimum, maximum, items, properties, required
+        case type, description, `enum`, minimum, maximum, items, properties,
+            required
     }
 
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let type = try container.decode(String.self, forKey: .type)
-        let description = try container.decodeIfPresent(String.self, forKey: .description)
+        let description = try container.decodeIfPresent(
+            String.self,
+            forKey: .description
+        )
 
         switch type {
         case "string":
-            let enumValues = try container.decodeIfPresent([String].self, forKey: .enum)
+            let enumValues = try container.decodeIfPresent(
+                [String].self,
+                forKey: .enum
+            )
             self = .string(description: description, enumValues: enumValues)
         case "integer":
-            let minimum = try container.decodeIfPresent(Int.self, forKey: .minimum)
-            let maximum = try container.decodeIfPresent(Int.self, forKey: .maximum)
-            self = .integer(description: description, minimum: minimum, maximum: maximum)
+            let minimum = try container.decodeIfPresent(
+                Int.self,
+                forKey: .minimum
+            )
+            let maximum = try container.decodeIfPresent(
+                Int.self,
+                forKey: .maximum
+            )
+            self = .integer(
+                description: description,
+                minimum: minimum,
+                maximum: maximum
+            )
         case "number":
-            let minimum = try container.decodeIfPresent(Double.self, forKey: .minimum)
-            let maximum = try container.decodeIfPresent(Double.self, forKey: .maximum)
-            self = .number(description: description, minimum: minimum, maximum: maximum)
+            let minimum = try container.decodeIfPresent(
+                Double.self,
+                forKey: .minimum
+            )
+            let maximum = try container.decodeIfPresent(
+                Double.self,
+                forKey: .maximum
+            )
+            self = .number(
+                description: description,
+                minimum: minimum,
+                maximum: maximum
+            )
         case "boolean":
             self = .boolean(description: description)
         case "array":
-            let items = try container.decode(JSONSchemaProperty.self, forKey: .items)
+            let items = try container.decode(
+                JSONSchemaProperty.self,
+                forKey: .items
+            )
             self = .array(description: description, items: items)
         case "object":
-            let properties = try container.decode([String: JSONSchemaProperty].self, forKey: .properties)
-            let required = try container.decodeIfPresent([String].self, forKey: .required)
-            self = .object(description: description, properties: properties, required: required)
+            let properties = try container.decode(
+                [String: JSONSchemaProperty].self,
+                forKey: .properties
+            )
+            let required = try container.decodeIfPresent(
+                [String].self,
+                forKey: .required
+            )
+            self = .object(
+                description: description,
+                properties: properties,
+                required: required
+            )
         default:
-            throw DecodingError.dataCorruptedError(forKey: .type, in: container, debugDescription: "Unsupported type: \(type)")
+            throw DecodingError.dataCorruptedError(
+                forKey: .type,
+                in: container,
+                debugDescription: "Unsupported type: \(type)"
+            )
         }
     }
 
@@ -91,33 +149,48 @@ struct JSONSchema: Content {
 }
 
 struct ResponseFormat: Content {
-    var type: String // "json_schema" or "text"
+    var type: String  // "json_schema" or "text"
     var json_schema: JSONSchema?
 }
-
 
 struct RequestContent: Content {
     // Either `messages` or `prompt` is required
     var messages: [Message]?
     var prompt: String?
-    
+
     // If `model` is unspecified, uses the default
     var model: String?
-    
+
     // Enable streaming
     var stream: Bool?
-    
+
     // Generation options
     var max_tokens: Int?
     var temperature: Double?
-    
+
     // Advanced options
     var seed: UInt64?
     var top_p: Double?
     var top_k: Int?
-    
+
     // Structured output support
     var response_format: ResponseFormat?
-    
+
     // Note: We do not yet support tool calling
+}
+
+/// Helper function to type decoding errors
+///
+/// Before using this function, ensure all other errors that are not ``DecodingError`` are caught and handeled,
+/// as this  will panic when a non-``DecodingError`` is thrown.
+@inlinable
+@inline(__always)
+func catchDecoding<T>(_ block: () throws -> T) throws(DecodingError) -> T {
+    do {
+        return try block()
+    } catch let error as DecodingError {
+        throw error
+    } catch let error {
+        fatalError("Unexpected error: \(error)")
+    }
 }

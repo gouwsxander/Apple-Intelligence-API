@@ -5,7 +5,9 @@ import VaporTesting
 
 @Suite("Routes Tests")
 struct RoutesTests {
-    private func withApp(_ test: (Application) async throws -> Void) async throws {
+    private func withApp(_ test: (Application) async throws -> Void)
+        async throws
+    {
         let app = try await Application.make(.testing)
         do {
             try await configure(app)
@@ -21,7 +23,8 @@ struct RoutesTests {
     func getModels() async throws {
         try await withApp { app in
             try await app.testing().test(
-                .GET, "api/v1/models",
+                .GET,
+                "api/v1/models",
                 afterResponse: { res async throws in
                     #expect(res.status == .ok)
                     let response = try res.content.decode(ModelsResponse.self)
@@ -31,7 +34,8 @@ struct RoutesTests {
                     #expect(response.data[0].object == "model")
                     #expect(response.data[1].id == "permissive")
                     #expect(response.data[1].object == "model")
-                })
+                }
+            )
         }
     }
 }
